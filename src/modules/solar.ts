@@ -18,7 +18,8 @@ export default class SolarDate extends Calendar {
                 super({
                     day: date.getDate(),
                     month: date.getMonth() + 1,
-                    year: date.getFullYear()
+                    year: date.getFullYear(),
+                    hour: date.getHours()
                 }, "solar_calendar");
                 this.jd = SolarDate.jdn(date);
             } else {
@@ -116,8 +117,7 @@ export default class SolarDate extends Calendar {
         let day = INT(B - D - INT(30.6001 * E));
         let month = (E < 14) ? E - 1 : E - 13;
         let year = (month < 3) ? C - 4715 : C - 4716;
-
-        return new SolarDate({ day, month, year });
+        return new SolarDate({ day, month, year, hour: 0 });
     }
 
     /**
@@ -171,7 +171,8 @@ export default class SolarDate extends Calendar {
                 this.set({
                     day: date.getDate(),
                     month: date.getMonth() + 1,
-                    year: date.getFullYear()
+                    year: date.getFullYear(),
+                    hour: date.getHours()
                 })
                 this.jd = SolarDate.jdn(date);
             } else {
