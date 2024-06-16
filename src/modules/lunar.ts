@@ -44,12 +44,12 @@ export default class LunarDate extends Calendar {
      * Initialize the instance.
      */
     init(force_change: boolean = false) {
-        if (!LunarDate.isValidDate({ day: this.day, month: this.month, year: this.year }))
+        if (!LunarDate.isValidDate({ day: this.day, month: this.month, year: this.year, hour: this.hour }))
             throw new Error("Invalid date");
 
         const recommendation = LunarDate.getRecommended(
             {
-                day: this.day, month: this.month, year: this.year,
+                day: this.day, month: this.month, year: this.year, hour: this.hour,
                 leap_month: this.leap_month
             });
 
@@ -203,7 +203,7 @@ export default class LunarDate extends Calendar {
 
         // Build a list of info of each month in the year
         for (let month = 1; month <= 12; month++) {
-            const date: ICalendarDate = { day: 1, month, year };
+            const date: ICalendarDate = { day: 1, month, year, hour: 0 };
 
             let normal_lunar = new LunarDate({ ...date, leap_month: false })
             normal_lunar.setExAttribute({
@@ -238,7 +238,7 @@ export default class LunarDate extends Calendar {
      * @param lunar_months 
      * @returns Exactly the lunar date
      */
-    private static findLunarDate(jd: number, lunar_months: Array<LunarDate>): LunarDate {
+    private static findLunarDate(jd: number, lunar_months: Array<LunarDate>, hour: number): LunarDate {
         // TODO: find test case
         if (lunar_months[0].jd > jd) {
             throw new Error("Out of calculation");
@@ -255,6 +255,7 @@ export default class LunarDate extends Calendar {
             day: lunar_months[index].day + offset,
             month: lunar_months[index].month,
             year: lunar_months[index].year,
+            hour: hour,
             leap_month: lunar_months[index].leap_month
         });
 
@@ -310,7 +311,7 @@ export default class LunarDate extends Calendar {
      * @returns Lunar Calendar
      */
     static fromSolarDate(date: SolarDate): LunarDate {
-        const { day, month, year } = date.get();
+        const { day, month, year, hour } = date.get();
 
         let year_code = LunarDate.getYearCode(year);
         let lunar_months = LunarDate.decodeLunarYear(year, year_code);
@@ -321,7 +322,7 @@ export default class LunarDate extends Calendar {
             year_code = LunarDate.getYearCode(year - 1);
             lunar_months = LunarDate.decodeLunarYear(year - 1, year_code);
         }
-        return LunarDate.findLunarDate(jd, lunar_months);
+        return LunarDate.findLunarDate(jd, lunar_months, hour);
     }
 
     /**
@@ -357,7 +358,35 @@ export default class LunarDate extends Calendar {
       * @returns hour's name in Sexagenary cycle
       */
     getHourName(): string {
-        return Constants.CAN[(this.jd - 1) * 2 % 10] + " " + Constants.CHI[0];
+        const hourIndex = Math.floor((this.hour + 1) / 2) % 12;
+        let hourCan;
+        switch (Constants.CAN[(this.jd + 9) % 10]) {
+            case 'Giáp':
+            case 'Kỷ':
+                hourCan = Constants.CAN[hourIndex % 10];
+                break;
+            case 'Ất':
+            case 'Canh':
+                hourCan = Constants.CAN[(hourIndex + 2) % 10];
+                break;
+            case 'Bính':
+            case 'Tân':
+                hourCan = Constants.CAN[(hourIndex + 4) % 10];
+                break;
+            case 'Đinh':
+            case 'Nhâm':
+                hourCan = Constants.CAN[(hourIndex + 6) % 10];
+                break;
+            case 'Mậu':
+            case 'Quý':
+                hourCan = Constants.CAN[(hourIndex + 8) % 10];
+                break;
+            default:
+                hourCan = 1;
+                break;
+        }
+
+        return hourCan + " " + Constants.CHI[hourIndex];
     }
 
     /**
@@ -412,7 +441,7 @@ export default class LunarDate extends Calendar {
 
     setDate(date: ILunarDate): void {
         let backupDate: ILunarDate = {
-            day: this.day, month: this.month, year: this.year,
+            day: this.day, month: this.month, year: this.year, hour: this.hour,
             leap_month: this.leap_month
         };
 

@@ -2,6 +2,7 @@ export interface ICalendarDate {
     day: number
     month: number
     year: number
+    hour?: number
 }
 
 export type CalendarName = "solar_calendar" | "lunar_calendar"
@@ -13,6 +14,7 @@ export default abstract class Calendar { // Role: Wrapper class
     protected day: number
     protected month: number
     protected year: number
+    protected hour: number
     protected name: CalendarName
     protected jd?: number // Julian Date
     protected leap_year?: boolean
@@ -21,6 +23,7 @@ export default abstract class Calendar { // Role: Wrapper class
         this.day = date.day;
         this.month = date.month;
         this.year = date.year;
+        this.hour = date.hour;
         this.name = name;
     }
 
@@ -28,6 +31,7 @@ export default abstract class Calendar { // Role: Wrapper class
         this.day = date.day;
         this.month = date.month;
         this.year = date.year;
+        this.hour = date.hour;
     }
 
     get() {
@@ -36,6 +40,7 @@ export default abstract class Calendar { // Role: Wrapper class
             day: this.day,
             month: this.month,
             year: this.year,
+            hour: this.hour,
             leap_year: this.leap_year,
             julian: this.jd
         }
